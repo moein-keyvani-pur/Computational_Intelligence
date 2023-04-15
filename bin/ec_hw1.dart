@@ -1,17 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 
-const count = 10;
+const countSelector =
+    30; // this number is default for number of selecting parent and child
 const numberFragmentChromosome = 6; // a,b,c,d,e,f
 
-//! notice : dart lang work with call by refrence if we want pass object as argument of function, we should create copy of object then that pass that copy
+//! notice : dart lang work with call by refrence. if we want pass object as argument of function, we should create copy of object then pass that copy
 void main(List<String> arguments) {
-  var primaryPopulation = getPrimaryPopulation(count: 10);
+  var primaryPopulation = getPrimaryPopulation(count: 30);
 
-  double sumFitness = calculateAllFitness(listIndividual: primaryPopulation);
-  for (var element in primaryPopulation) {
-    element.setProbabilityChoice = element.getFitness! / sumFitness;
-  }
   idontKnowName(primaryPopulation);
 }
 
@@ -19,6 +16,7 @@ class RouletteWheel {
   final List<Individual> individual;
   late List<Map<String, dynamic>> sortedAscendingByProbability;
   RouletteWheel(this.individual) {
+    _setProbability();
     sortedAscendingByProbability = individual
         .map((e) => {'id': e.getId, 'possibility': e.getProbabilityChoice!})
         .toList()
@@ -26,11 +24,14 @@ class RouletteWheel {
         (a, b) =>
             (a['possibility'] as double).compareTo(b['possibility'] as double),
       );
-    sortedAscendingByProbability =
-        sortedAscendingByProbability.reversed.toList();
-    // for (var element in sortedAscendingByProbability) {
-    //   print(element);
-    // }
+    // sortedAscendingByProbability =
+    //     sortedAscendingByProbability.reversed.toList();
+  }
+  void _setProbability() {
+    double sumFitness = calculateAllFitness(listIndividual: individual);
+    for (var element in individual) {
+      element.setProbabilityChoice = element.getFitness! / sumFitness;
+    }
   }
 
   Individual spin() {
@@ -38,14 +39,6 @@ class RouletteWheel {
     Map<String, dynamic> item = _selectInd(randomNumber: randomNumber);
     return individual
         .firstWhere((element) => element.getId == (item['id'] as int));
-  }
-
-  double _sumFirstUntilIndex({required int index}) {
-    double sum = 0;
-    for (var i = 0; i < index; i++) {
-      sum += (sortedAscendingByProbability[i]['possibility'] as double);
-    }
-    return sum;
   }
 
   Map<String, dynamic> _selectInd({required double randomNumber}) {
@@ -56,6 +49,14 @@ class RouletteWheel {
       }
     }
     return {};
+  }
+
+  double _sumFirstUntilIndex({required int index}) {
+    double sum = 0;
+    for (var i = 0; i < index; i++) {
+      sum += (sortedAscendingByProbability[i]['possibility'] as double);
+    }
+    return sum;
   }
 }
 
@@ -193,33 +194,43 @@ class BaseAlgorithm {
 }
 
 void idontKnowName(List<Individual> primaryPopulation) {
+  List<Individual> remainingsIndividuals = primaryPopulation;
   var selectedParentsByRouletteWheel = <Individual>[];
   var individualsAfterXover = <Individual>[];
   // select parents with RouletteWheel method
-  for (var i = 0; i < 10; i++) {
-    Individual selectedIndividual = RouletteWheel(primaryPopulation).spin();
-    selectedParentsByRouletteWheel.add(selectedIndividual);
-  }
-  // select randomly two parents for cross over them and create new child (:
-  for (var i = 0; i < 5; i++) {
-    Individual firstParent = Individual.fromMap(
-        selectedParentsByRouletteWheel[Random().nextInt(10)].toMap());
-    Individual secondParent = Individual.fromMap(
-        selectedParentsByRouletteWheel[Random().nextInt(10)].toMap());
+  int numberRepetition = 0;
+  while (numberRepetition != countSelector) {
+    selectedParentsByRouletteWheel.clear();
+    individualsAfterXover.clear();
+    numberRepetition++;
+    RouletteWheel rouletteWheel = RouletteWheel(remainingsIndividuals);
+    for (var i = 0; i < countSelector; i++) {
+      Individual selectedIndividual = rouletteWheel.spin();
+      selectedParentsByRouletteWheel.add(selectedIndividual);
+    }
+    // select randomly two parents for cross over them and create new child (:
+    for (var i = 0; i < countSelector; i++) {
+      Individual firstParent = Individual.fromMap(
+          selectedParentsByRouletteWheel[Random().nextInt(countSelector)]
+              .toMap());
+      Individual secondParent = Individual.fromMap(
+          selectedParentsByRouletteWheel[Random().nextInt(countSelector)]
+              .toMap());
 
-    BaseAlgorithm()
-        .crossover(firstParentArg: firstParent, secondParentArg: secondParent);
-    individualsAfterXover.addAll([firstParent, secondParent].toList());
+      BaseAlgorithm().crossover(
+          firstParentArg: firstParent, secondParentArg: secondParent);
+      individualsAfterXover.addAll([firstParent, secondParent].toList());
+    }
+    if (numberRepetition == 1) {
+      remainingsIndividuals.clear();
+    }
+    remainingsIndividuals.addAll(selectedParentsByRouletteWheel.toList());
+    remainingsIndividuals.addAll(individualsAfterXover.toList());
+    var sumP = 0.0;
+    // var sumC = 0.0;
+    for (var element in selectedParentsByRouletteWheel) {
+      sumP += element.getFitness!;
+    }
+    print('$numberRepetition- sumP is $sumP');
   }
-  var sumP = 0.0;
-  var sumC = 0.0;
-  for (var element in selectedParentsByRouletteWheel) {
-    sumP += element.getFitness!;
-  }
-  print('sumP is $sumP');
-
-  for (var element in individualsAfterXover) {
-    sumC += element.getFitness!;
-  }
-  print('sumC is $sumC');
 }
