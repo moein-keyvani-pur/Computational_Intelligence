@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 const countSelector =
-    30; // this number is default for number of selecting parent and child
+    100; // this number is default for number of selecting parent and child
 const numberFragmentChromosome = 6; // a,b,c,d,e,f
 
 //! notice : dart lang work with call by refrence. if we want pass object as argument of function, we should create copy of object then pass that copy
@@ -221,9 +221,8 @@ void idontKnowName(List<Individual> primaryPopulation) {
           firstParentArg: firstParent, secondParentArg: secondParent);
       individualsAfterXover.addAll([firstParent, secondParent].toList());
     }
-    if (numberRepetition == 1) {
-      remainingsIndividuals.clear();
-    }
+    remainingsIndividuals.clear();
+
     remainingsIndividuals.addAll(selectedParentsByRouletteWheel.toList());
     remainingsIndividuals.addAll(individualsAfterXover.toList());
     var sumP = 0.0;
