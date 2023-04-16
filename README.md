@@ -27,4 +27,8 @@ Go to the bin file in project and start it
   run dart ec_hw1.dart
 ```
 # result
-  
+
+  after running the project, the given values have been tested once with the RouletteWheel method and a second time with the SUS method.
+  in each cycle we repeat 50 times that you can change with change [countSelector] variable at the top of the page
+
+

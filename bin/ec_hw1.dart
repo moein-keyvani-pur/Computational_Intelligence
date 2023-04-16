@@ -10,8 +10,10 @@ void main(List<String> arguments) {
   var primaryPopulation = getPrimaryPopulation(count: countSelector);
   List<Individual> primaryPopulation2 = List.of(primaryPopulation);
 
-  selectIndWithSUS(primaryPopulation);
+  print('start RouletteWheel\n ');
   selectIndWithRouletteWheel(primaryPopulation2);
+  print('\nstart SUS\n ');
+  selectIndWithSUS(primaryPopulation);
 }
 
 class RouletteWheel {
